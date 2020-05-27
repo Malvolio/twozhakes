@@ -100,8 +100,8 @@ const ALL_UNIT_NAMES_LIST: TZUnitName[] = [
 ];
 const ALL_UNIT_NAMES = new Set<string>(ALL_UNIT_NAMES_LIST);
 
-const isTZUnitName = (s: string): s is TZUnitName => {
-  return ALL_UNIT_NAMES.has(s);
+const isTZUnitName = (name: string): name is TZUnitName => {
+  return ALL_UNIT_NAMES.has(name);
 };
 
 const makeZSetter = memoize((name: TZSetterName): TZSetter => ({ name }));
@@ -119,32 +119,34 @@ const ALL_DISTINCT_SETTER_NAMES = new Set<string>(
   ALL_DISTINCT_SETTER_NAMES_LIST
 );
 
-const isTZSetterNames = (s: string): s is TZUnitName => {
-  return ALL_UNIT_NAMES.has(s) || ALL_DISTINCT_SETTER_NAMES.has(s);
+const isTZSetterNames = (name: string): name is TZUnitName => {
+  return ALL_UNIT_NAMES.has(name) || ALL_DISTINCT_SETTER_NAMES.has(name);
 };
 
-const cleanName = (s: string) => {
-  const s1 = s.toLowerCase();
-  return s1.charAt(s.length - 1) === "s" ? s1.substring(0, s.length - 1) : s1;
+const cleanName = (name: string) => {
+  const lowerName = name.toLowerCase();
+  return lowerName.charAt(name.length - 1) === "s"
+    ? lowerName.substring(0, name.length - 1)
+    : lowerName;
 };
 
 export const getTZUnit = memoize(
-  (s: string): TZUnit => {
-    const s2 = cleanName(s);
-    if (!isTZUnitName(s2)) {
-      throw new Error(`${s} is not a unit of time`);
+  (name: string): TZUnit => {
+    const cleanedName = cleanName(name);
+    if (!isTZUnitName(cleanedName)) {
+      throw new Error(`${name} is not a unit of time`);
     }
-    return makeTZUnit(s2);
+    return makeTZUnit(cleanedName);
   }
 );
 
 export const getTZSetter = memoize(
-  (s: string): TZSetter => {
-    const s2 = cleanName(s);
-    if (!isTZSetterNames(s2)) {
-      throw new Error(`${s} is not a unit of time`);
+  (name: string): TZSetter => {
+    const cleanedName = cleanName(name);
+    if (!isTZSetterNames(cleanedName)) {
+      throw new Error(`${name} is not a unit of time`);
     }
-    return makeZSetter(s2);
+    return makeZSetter(cleanedName);
   }
 );
 
