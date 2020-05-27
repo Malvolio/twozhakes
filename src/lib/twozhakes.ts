@@ -1,7 +1,8 @@
 import memoize from "lodash/memoize";
 import reduce from "lodash/reduce";
+import fromPairs from "lodash/fromPairs";
+import map from "lodash/map";
 import moment from "moment-timezone";
-import find from "lodash/find";
 
 type TZUnitName =
   | "day"
@@ -17,7 +18,7 @@ type TZUnitName =
 type TZUnit = (value: number) => TZValue;
 type TZValue = {
   value: number;
-  name: TZUnitName;
+  unitName: TZUnitName;
 };
 
 type TZSetterName =
@@ -46,20 +47,17 @@ export type TZ = {
   format: (d: Datish, spec: string) => string;
 };
 
-const isTZUnit = (u: TZSetter | TZUnit): u is TZUnit => {
-  return typeof u === "function";
-};
+export const asDate = (d: Datish): Date =>
+  typeof d === "number" ? new Date(d) : d;
+
 export const getTZ = memoize(
   (tzName: string): TZ => {
-    const asDate = (d: Datish): Date =>
-      typeof d === "number" ? new Date(d) : d;
-
     const parse = (s: string): Date => {
       return moment.tz(s, tzName).toDate();
     };
     const extract = (d: Datish, u: TZSetter | TZUnit): number => {
-      const name = isTZUnit(u) ? getTZUnitName(u) : u.name;
       const m = moment(d);
+      const name = u.name as TZUnitName;
       const f = m[name] as () => number;
       return f.call(m);
     };
@@ -79,10 +77,17 @@ export const getTZ = memoize(
   }
 );
 
-const _getTZUnit = memoize(
-  (name: TZUnitName): TZUnit => (value: number) => ({ value, name })
+const makeTZUnit = memoize(
+  (name: TZUnitName): TZUnit => {
+    // hack to produce a named function
+    const maker = new Function(
+      `return function ${name}(value) { return { unitName: "${name}", value }; };`
+    );
+    return maker();
+  }
 );
-const ALL_UNIT_NAMES = new Set([
+
+const ALL_UNIT_NAMES_LIST: TZUnitName[] = [
   "day",
   "hour",
   "millisecond",
@@ -92,13 +97,16 @@ const ALL_UNIT_NAMES = new Set([
   "second",
   "week",
   "year",
-]);
+];
+const ALL_UNIT_NAMES = new Set<string>(ALL_UNIT_NAMES_LIST);
+
 const isTZUnitName = (s: string): s is TZUnitName => {
   return ALL_UNIT_NAMES.has(s);
 };
 
-const _getTZSetter = memoize((name: TZSetterName): TZSetter => ({ name }));
-const ALL_DISTINCT_SETTER_NAMES = new Set([
+const makeZSetter = memoize((name: TZSetterName): TZSetter => ({ name }));
+
+const ALL_DISTINCT_SETTER_NAMES_LIST: TZSetterName[] = [
   "date",
   "dayOfYear",
   "isoWeek",
@@ -106,7 +114,11 @@ const ALL_DISTINCT_SETTER_NAMES = new Set([
   "isoWeekday",
   "weekYear",
   "weekday",
-]);
+];
+const ALL_DISTINCT_SETTER_NAMES = new Set<string>(
+  ALL_DISTINCT_SETTER_NAMES_LIST
+);
+
 const isTZSetterNames = (s: string): s is TZUnitName => {
   return ALL_UNIT_NAMES.has(s) || ALL_DISTINCT_SETTER_NAMES.has(s);
 };
@@ -122,7 +134,7 @@ export const getTZUnit = memoize(
     if (!isTZUnitName(s2)) {
       throw new Error(`${s} is not a unit of time`);
     }
-    return _getTZUnit(s2);
+    return makeTZUnit(s2);
   }
 );
 
@@ -132,67 +144,50 @@ export const getTZSetter = memoize(
     if (!isTZSetterNames(s2)) {
       throw new Error(`${s} is not a unit of time`);
     }
-    return _getTZSetter(s2);
+    return makeZSetter(s2);
   }
 );
 
-export const units = {
-  day: _getTZUnit("day"),
-  hour: _getTZUnit("hour"),
-  millisecond: _getTZUnit("millisecond"),
-  minute: _getTZUnit("minute"),
-  month: _getTZUnit("month"),
-  quarter: _getTZUnit("quarter"),
-  second: _getTZUnit("second"),
-  week: _getTZUnit("week"),
-  year: _getTZUnit("year"),
-};
+export const units = fromPairs(
+  map(ALL_UNIT_NAMES_LIST, (name) => [name, makeTZUnit(name)])
+);
 
 export const setters = {
-  date: _getTZSetter("date"),
-  dayOfYear: _getTZSetter("dayOfYear"),
-  isoWeek: _getTZSetter("isoWeek"),
-  isoWeekYear: _getTZSetter("isoWeekYear"),
-  isoWeekday: _getTZSetter("isoWeekday"),
-  weekYear: _getTZSetter("weekYear"),
-  weekday: _getTZSetter("weekday"),
+  ...fromPairs(
+    map(ALL_DISTINCT_SETTER_NAMES_LIST, (name) => [name, makeZSetter(name)])
+  ),
   ...units,
 };
 
-const getTZUnitName = (unit: TZUnit): TZUnitName => {
-  const p = find(Object.entries(units), ([, value]) => value === unit);
-  if (!p) {
-    throw new Error("unknown unit!");
-  }
-  const [name] = p;
-  return name as TZUnitName;
-};
+type Constructor<T, P extends unknown[]> = (...parms: P) => T;
 
-type _TZConstructor<T extends unknown[]> = (
-  ...parms: T
-) => (d: moment.Moment) => moment.Moment;
+type MomentOp = (d: moment.Moment) => moment.Moment;
 
-function makeOp<T extends unknown[]>(f: _TZConstructor<T>) {
-  return (...t: T) => {
-    const f1 = f(...t);
+function wrapOp<P extends unknown[]>(
+  f: Constructor<MomentOp, P>
+): Constructor<TZOperator, P> {
+  return (...p: P) => {
+    const f1 = f(...p);
     return (d: Datish) => f1(moment(d)).toDate();
   };
 }
 
 export const operators = {
-  add: makeOp((v: TZValue) => (m: moment.Moment) => m.add(v.value, v.name)),
-  subtract: makeOp((v: TZValue) => (m: moment.Moment) =>
-    m.subtract(v.value, v.name)
+  add: wrapOp((v: TZValue) => (m: moment.Moment) => m.add(v.value, v.unitName)),
+  subtract: wrapOp((v: TZValue) => (m: moment.Moment) =>
+    m.subtract(v.value, v.unitName)
   ),
-  set: makeOp((v: TZValue) => (m: moment.Moment) => {
-    const f = m[v.name] as (n: number) => moment.Moment;
+  set: wrapOp((v: TZValue) => (m: moment.Moment) => {
+    const f = m[v.unitName] as (n: number) => moment.Moment;
     f.apply(m, [v.value]);
     return m;
   }),
-  startOf: makeOp((v: TZUnit) => (m: moment.Moment) =>
-    m.startOf(getTZUnitName(v))
+  startOf: wrapOp((unit: TZUnit) => (m: moment.Moment) =>
+    m.startOf(<TZUnitName>unit.name)
   ),
-  endOf: makeOp((v: TZUnit) => (m: moment.Moment) => m.endOf(getTZUnitName(v))),
+  endOf: wrapOp((unit: TZUnit) => (m: moment.Moment) =>
+    m.endOf(<TZUnitName>unit.name)
+  ),
 };
 
 export const UTC = getTZ("UTC");
