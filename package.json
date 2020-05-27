@@ -4,7 +4,9 @@
   "description": "A sensible facade for momentjs",
   "main": "index.js",
   "scripts": {
-    "test": "jest src/test/**"
+    "build": "tsc",
+    "test": "jest src/",
+    "test-watch": "jest --watchAll src/"
   },
   "keywords": [
     "momentjs"
