@@ -124,8 +124,8 @@ const isTZSetterNames = (s: string): s is TZUnitName => {
 };
 
 const cleanName = (s: string) => {
-  const s1 = s.charAt(s.length - 1) === "s" ? s.substring(0, s.length - 1) : s;
-  return s1.toLowerCase();
+  const s1 = s.toLowerCase();
+  return s1.charAt(s.length - 1) === "s" ? s1.substring(0, s.length - 1) : s1;
 };
 
 export const getTZUnit = memoize(

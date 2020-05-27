@@ -1,4 +1,12 @@
-import { UTC, SystemTZ, operators, units, setters, getTZ } from "../lib";
+import {
+  UTC,
+  SystemTZ,
+  operators,
+  units,
+  setters,
+  getTZ,
+  getTZSetter,
+} from "../lib";
 
 const { day, hour } = units;
 const { add, set, subtract } = operators;
@@ -65,4 +73,9 @@ test("can extract date", () => {
   const tz = getTZ("America/Los_Angeles");
   const d = tz.extract(TestDate, date);
   expect(d).toBe(7); // It is 7th of the month
+});
+
+test("can find date setter", () => {
+  const foundDate = getTZSetter("DATES");
+  expect(foundDate).toBe(date);
 });
