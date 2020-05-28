@@ -3,15 +3,6 @@ import reduce from "lodash/reduce";
 import fromPairs from "lodash/fromPairs";
 import map from "lodash/map";
 import moment, { Moment } from "moment-timezone";
-/*
-Getters -- can be used in extract().  Given a moment, they return a value.  All getters except format() get numbers
-Setters -- all Setters are also Getters, but can be used in set(); the Getter function is separate
-Units -- all Units are also Setters, but can be used in math();
-
-Setter functions return TZValue<TZSetterNames>
-Unit functions return TZValue<TZUnitNames>
-
-extract takes setters or getters but recognizes setters and substitutes the Getter function of the same name*/
 
 type TZUnitName =
   | "day"
@@ -209,7 +200,7 @@ function wrapOp<P extends unknown[]>(
 ): Constructor<TZOperator, P> {
   return (...p: P) => {
     const f1 = f(...p);
-    return (d: Datish) => f1(moment(d)).toDate();
+    return (d: Date, tzName: string) => f1(moment(d).tz(tzName)).toDate();
   };
 }
 
