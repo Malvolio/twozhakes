@@ -26,6 +26,7 @@ test("can format date", () => {
   const d = UTC.extract(TestDate, format("YYYY-MM-DD"));
   expect(d).toBe(TestDateString.substring(0, 10));
 });
+
 test("can format date in LA", () => {
   const tz = getTZ("America/Los_Angeles");
   const d = tz.extract(TestDate, format("YYYY-MM-DD hh:mm"));
@@ -34,24 +35,19 @@ test("can format date in LA", () => {
 
 test("can add hours", () => {
   const tz = getTZ("America/Los_Angeles");
-
   const d = tz.operate(TestDate, add(hour(24)));
-
   expect(d.toISOString()).toBe("2020-03-08T13:00:00.000Z");
 });
 
 test("can add days", () => {
   const tz = getTZ("America/Los_Angeles");
-
   const d = tz.operate(TestDate, add(day(1)));
-
   // note we have lost an hour, as DST ended!
   expect(d.toISOString()).toBe("2020-03-08T12:00:00.000Z");
 });
 
 test("can subtract days and set hours", () => {
   const tz = getTZ("America/Los_Angeles");
-
   const d = tz.operate(TestDate, subtract(day(1)), set(hour(3)));
   // 3am in LA is 11 in UTC (in winter)
   expect(d.toISOString()).toBe("2020-03-06T11:00:00.000Z");
@@ -59,9 +55,7 @@ test("can subtract days and set hours", () => {
 
 test("can extract hours", () => {
   const tz = getTZ("America/Los_Angeles");
-
   const d = tz.extract(TestDate, hour);
-
   expect(d).toBe(5);
 });
 
@@ -83,7 +77,7 @@ test("can extract isoWeeksInYear", () => {
   expect(d).toBe(53);
 });
 
-test("can extract from", () => {
+test("can extract 'from'", () => {
   const tz = getTZ("America/Los_Angeles");
   const d0 = tz.operate(TestDate, add(day(95)));
   const d = tz.extract(TestDate, from(d0));
