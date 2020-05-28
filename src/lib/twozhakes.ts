@@ -74,9 +74,8 @@ type TZOperator = (d: Date, tz: TZ) => Date;
 
 type Datish = Date | number;
 
-type TZExtraction<U extends TZGetter<unknown> | TZSetter> = U extends TZGetter<
-  infer T
->
+type TZExtractor = TZGetter<unknown> | TZSetter;
+type TZExtraction<U extends TZExtractor> = U extends TZGetter<infer T>
   ? T
   : number;
 
@@ -91,13 +90,15 @@ const getGetter = (u: TZSetter): TZGetter<number> => {
   return SPECIAL_GETTERS[u.name];
 };
 
+export const composeOps = (...ops: TZOperator[]): TZOperator => (
+  d: Date,
+  tz: TZ
+) => reduce(ops, (acc, op) => op(acc, tz), d);
+
 export type TZ = Readonly<{
   tzName: string;
   parse: (s: string) => Date;
-  extract: <T extends TZGetter<unknown> | TZSetter>(
-    d: Datish,
-    extractor: T
-  ) => TZExtraction<T>;
+  extract: <T extends TZExtractor>(d: Datish, extractor: T) => TZExtraction<T>;
   operate: (d: Datish, ...ops: TZOperator[]) => Date;
 }>;
 
@@ -105,19 +106,13 @@ export const getTZ = memoize(
   (tzName: string): TZ => {
     const tz: TZ = Object.freeze({
       tzName,
-      parse: (s: string): Date => {
-        return moment.tz(s, tzName).toDate();
-      },
-      extract: <T extends TZGetter<unknown> | TZSetter>(
-        d: Datish,
-        u: T
-      ): TZExtraction<T> => {
+      parse: (s: string): Date => moment.tz(s, tzName).toDate(),
+      extract: <T extends TZExtractor>(d: Datish, u: T): TZExtraction<T> => {
         const op = isGetter(u) ? getGetter(u) : (u as TZGetter<any>);
         return op(asDate(d), tz);
       },
-      operate: (d: Datish, ...ops: TZOperator[]): Date => {
-        return reduce(ops, (acc, op) => op(acc, tz), asDate(d));
-      },
+      operate: (d: Datish, ...ops: TZOperator[]): Date =>
+        composeOps(...ops)(asDate(d), tz),
     });
 
     return tz;
