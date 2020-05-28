@@ -229,15 +229,34 @@ const wrapMomentGetter = <T>(f: (m: Moment) => T) => (
   { tzName }: TZ
 ) => f(moment(d).tz(tzName));
 
+const weeksInYear = () => wrapMomentGetter((m: Moment) => m.weeksInYear());
+const isoWeeksInYear = () =>
+  wrapMomentGetter((m: Moment) => m.isoWeeksInYear());
 const format = (spec: string) =>
   wrapMomentGetter((m: Moment) => m.format(spec));
-const weeksInYear = wrapMomentGetter((m: Moment) => m.weeksInYear());
-const isoWeeksInYear = wrapMomentGetter((m: Moment) => m.isoWeeksInYear());
+const daysInMonth = () => wrapMomentGetter((m: Moment) => m.daysInMonth());
+const calendar = (d?: Date, formats?: Record<string, string>) =>
+  wrapMomentGetter((m: Moment) => m.calendar(d, formats));
+const diff = (d?: Date, s?: TZUnitName, b?: boolean) =>
+  wrapMomentGetter((m: Moment) => m.diff(d, s, b));
+const from = (d?: Date, b?: boolean) =>
+  wrapMomentGetter((m: Moment) => m.from(d, b));
+const to = (d?: Date, b?: boolean) =>
+  wrapMomentGetter((m: Moment) => m.to(d, b));
+const toNow = (b?: boolean) => wrapMomentGetter((m: Moment) => m.toNow(b));
+const fromNow = (b?: boolean) => wrapMomentGetter((m: Moment) => m.fromNow(b));
 
 export const getters = {
-  format,
   weeksInYear,
   isoWeeksInYear,
+  format,
+  daysInMonth,
+  calendar,
+  diff,
+  from,
+  to,
+  toNow,
+  fromNow,
   ...setters,
 };
 

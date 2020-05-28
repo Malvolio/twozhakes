@@ -12,7 +12,7 @@ import {
 const { day, hour } = units;
 const { add, set, subtract } = operators;
 const { date } = setters;
-const { format, isoWeeksInYear } = getters;
+const { format, isoWeeksInYear, from } = getters;
 
 const TestDate = 1583586000000;
 const TestDateString = "2020-03-07T13:00:00Z";
@@ -79,8 +79,15 @@ test("can extract date", () => {
 
 test("can extract isoWeeksInYear", () => {
   const tz = getTZ("America/Los_Angeles");
-  const d = tz.extract(TestDate, isoWeeksInYear);
+  const d = tz.extract(TestDate, isoWeeksInYear());
   expect(d).toBe(53);
+});
+
+test("can extract from", () => {
+  const tz = getTZ("America/Los_Angeles");
+  const d0 = tz.operate(TestDate, add(day(95)));
+  const d = tz.extract(TestDate, from(d0));
+  expect(d).toBe("3 months ago");
 });
 
 test("can find date setter", () => {
