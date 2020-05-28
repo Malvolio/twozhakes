@@ -6,11 +6,13 @@ import {
   setters,
   getTZ,
   getTZSetter,
+  getters,
 } from "../lib";
 
 const { day, hour } = units;
 const { add, set, subtract } = operators;
 const { date } = setters;
+const { format, isoWeeksInYear } = getters;
 
 const TestDate = 1583586000000;
 const TestDateString = "2020-03-07T13:00:00Z";
@@ -21,12 +23,12 @@ test("can parse date", () => {
 });
 
 test("can format date", () => {
-  const d = UTC.format(TestDate, "YYYY-MM-DD");
+  const d = UTC.extract(TestDate, format("YYYY-MM-DD"));
   expect(d).toBe(TestDateString.substring(0, 10));
 });
 test("can format date in LA", () => {
   const tz = getTZ("America/Los_Angeles");
-  const d = tz.format(TestDate, "YYYY-MM-DD hh:mm");
+  const d = tz.extract(TestDate, format("YYYY-MM-DD hh:mm"));
   expect(d).toBe("2020-03-07 05:00");
 });
 
@@ -73,6 +75,12 @@ test("can extract date", () => {
   const tz = getTZ("America/Los_Angeles");
   const d = tz.extract(TestDate, date);
   expect(d).toBe(7); // It is 7th of the month
+});
+
+test("can extract isoWeeksInYear", () => {
+  const tz = getTZ("America/Los_Angeles");
+  const d = tz.extract(TestDate, isoWeeksInYear);
+  expect(d).toBe(53);
 });
 
 test("can find date setter", () => {
