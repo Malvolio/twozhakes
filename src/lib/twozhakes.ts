@@ -91,7 +91,7 @@ const getGetter = (u: TZSetter): TZGetter<number> => {
   return SPECIAL_GETTERS[u.name];
 };
 
-export type TZ = {
+export type TZ = Readonly<{
   tzName: string;
   parse: (s: string) => Date;
   extract: <T extends TZGetter<unknown> | TZSetter>(
@@ -99,11 +99,11 @@ export type TZ = {
     extractor: T
   ) => TZExtraction<T>;
   operate: (d: Datish, ...ops: TZOperator[]) => Date;
-};
+}>;
 
 export const getTZ = memoize(
   (tzName: string): TZ => {
-    const tz: TZ = {
+    const tz: TZ = Object.freeze({
       tzName,
       parse: (s: string): Date => {
         return moment.tz(s, tzName).toDate();
@@ -118,7 +118,7 @@ export const getTZ = memoize(
       operate: (d: Datish, ...ops: TZOperator[]): Date => {
         return reduce(ops, (acc, op) => op(acc, tz), asDate(d));
       },
-    };
+    });
 
     return tz;
   }
