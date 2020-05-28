@@ -53,7 +53,7 @@ const makeAllGetters = (names: TZSetterName[]) =>
   fromPairs(
     map(names, (name) => [
       name,
-      (d: Date, tzName: string) => moment(d).tz(tzName).get(name),
+      (d: Date, { tzName }: TZ) => moment(d).tz(tzName).get(name),
     ])
   );
 
@@ -69,8 +69,8 @@ type TZValue<T> = {
 
 type TZUnit = (value: number) => TZValue<TZUnitName>;
 type TZSetter = (value: number) => TZValue<TZSetterName>;
-type TZGetter<T> = (d: Date, tzName: string) => T;
-type TZOperator = (d: Date, tzName: string) => Date;
+type TZGetter<T> = (d: Date, tz: TZ) => T;
+type TZOperator = (d: Date, tz: TZ) => Date;
 
 type Datish = Date | number;
 
@@ -92,6 +92,7 @@ const getGetter = (u: TZSetter): TZGetter<number> => {
 };
 
 export type TZ = {
+  tzName: string;
   parse: (s: string) => Date;
   extract: <T extends TZGetter<unknown> | TZSetter>(
     d: Datish,
@@ -102,25 +103,24 @@ export type TZ = {
 
 export const getTZ = memoize(
   (tzName: string): TZ => {
-    const parse = (s: string): Date => {
-      return moment.tz(s, tzName).toDate();
-    };
-    const extract = <T extends TZGetter<unknown> | TZSetter>(
-      d: Datish,
-      u: T
-    ): TZExtraction<T> => {
-      const op = isGetter(u) ? getGetter(u) : (u as TZGetter<any>);
-      return op(asDate(d), tzName);
-    };
-    const operate = (d: Datish, ...ops: TZOperator[]): Date => {
-      return reduce(ops, (acc, op) => op(acc, tzName), asDate(d));
+    const tz: TZ = {
+      tzName,
+      parse: (s: string): Date => {
+        return moment.tz(s, tzName).toDate();
+      },
+      extract: <T extends TZGetter<unknown> | TZSetter>(
+        d: Datish,
+        u: T
+      ): TZExtraction<T> => {
+        const op = isGetter(u) ? getGetter(u) : (u as TZGetter<any>);
+        return op(asDate(d), tz);
+      },
+      operate: (d: Datish, ...ops: TZOperator[]): Date => {
+        return reduce(ops, (acc, op) => op(acc, tz), asDate(d));
+      },
     };
 
-    return {
-      parse,
-      extract,
-      operate,
-    };
+    return tz;
   }
 );
 
@@ -200,7 +200,7 @@ function wrapOp<P extends unknown[]>(
 ): Constructor<TZOperator, P> {
   return (...p: P) => {
     const f1 = f(...p);
-    return (d: Date, tzName: string) => f1(moment(d).tz(tzName)).toDate();
+    return (d: Date, { tzName }: TZ) => f1(moment(d).tz(tzName)).toDate();
   };
 }
 
@@ -226,7 +226,7 @@ export const operators = {
 
 const wrapMomentGetter = <T>(f: (m: Moment) => T) => (
   d: Date,
-  tzName: string
+  { tzName }: TZ
 ) => f(moment(d).tz(tzName));
 
 const format = (spec: string) =>
