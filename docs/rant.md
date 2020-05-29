@@ -55,11 +55,11 @@ Most people get timezones wrong. The issues are complicated, and timezones were 
 
 Some of the smartest people in the world have spent their whole lives answering that question. I am not that smart and in more of a hurry, so let me give a very short version of what I know.
 
-_[for the first time in my career, I have reason to use of the expression “ignoring relativistic effects”, but if I did, I would have to use it in almost every sentence, so I am relying on you, the reader, to assume it is there if it matters._
-
 Time is the infinite sequence of “now” in which we live, and which we wish to name and to count.
 
 ### What is now?
+
+_[For the first time ever, I have reason to use the expression “ignoring relativistic effects” professionally, but if I did, I would have to use it in almost every sentence, so I am relying on you, the reader, to assume it is there if it matters._
 
 Have you ever, when conversing electronically with someone who is far to your west, said something like, “It is already Monday there? Then tell me, what is Dow Jones going to be when stock market opens?” It is a weak joke, and it is _only_ a joke: you do not for a second believe your friend is in the future, even though it is Monday for him while it is Sunday where you live.
 
@@ -85,7 +85,7 @@ Incidentally, Pacific Daylight Time is not a time-zone, it’s an offset from Zu
 
 ## So what is wrong with how Moment.js handles timezones?
 
-I think the writers of Moment.js misjudged how fundamental timezones are. Most of what they are doing only makes sense in the context of a timezone. For example, consider the method `.startOf("day")`. Today started 12 hours ago — if you’re here in California. In Hawai‘i, the day started on nine hours ago. Or consider `.endOf("hour")`. The current hour will end in 13 minutes here, and in New York and Honolulu — but in Mumbai, it has 43 minutes left to run.
+I think the writers of Moment.js misjudged how fundamental timezones are. Most of what they are doing only makes sense in the context of a timezone. For example, consider the method `.startOf("day")`. Today started 12 hours ago — if you’re here in California. In Hawai‘i, the day started only nine hours ago. Or consider `.endOf("hour")`. The current hour will end in 13 minutes here, and in New York and Honolulu — but in Mumbai, it has 43 minutes left to run.
 
 Having belatedly (ha-ha) realized that timezones are important, Moment.js managed to do exactly the wrong thing. It made it possible (although not obligatory) to associate a Moment with a timezones and any manipulation of that Moment are thereafter done in the context of that zone.
 
