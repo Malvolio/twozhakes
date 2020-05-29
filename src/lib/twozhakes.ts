@@ -67,10 +67,10 @@ type TZValue<T> = {
   name: T;
 };
 
-type TZUnit = (value: number) => TZValue<TZUnitName>;
-type TZSetter = (value: number) => TZValue<TZSetterName>;
-type TZGetter<T> = (d: Date, tz: TZ) => T;
-type TZOperator = (d: Date, tz: TZ) => Date;
+export type TZUnit = (value: number) => TZValue<TZUnitName>;
+export type TZSetter = (value: number) => TZValue<TZSetterName>;
+export type TZGetter<T> = (d: Date, tz: TZ) => T;
+export type TZOperator = (d: Date, tz: TZ) => Date;
 
 type Datish = Date | number;
 
