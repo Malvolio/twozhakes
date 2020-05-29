@@ -85,6 +85,6 @@ test("can extract 'from'", () => {
 });
 
 test("can find date setter", () => {
-  const foundDate = getTZSetter("DATES");
+  const foundDate = getTZSetter("dates");
   expect(foundDate).toBe(date);
 });
