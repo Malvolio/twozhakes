@@ -4,7 +4,7 @@ Improved façade for Moment.js
 
 Unlike Moment.js, twozhakes is functional and composable and most important, _does timezones right_.
 
-Or more right. Who knows.
+Or more right. Who knows?
 
 ## Motivation
 
@@ -31,7 +31,7 @@ const tz = getTZ("America/New_York");
 const d = tz.parse("2020-02-05");
 ```
 
-`parse()` using all [the parsing from Moment.js](https://momentjs.com/docs/#/parsing/) to returns a standard JavaScript `Date`. In fact, all work in twozhakes is done using `Date` objects. The `Date` class is far from perfect, but it is compact, it is unambiguous, it measures time in exactly the right way (Unix time), and it prints out nicely.
+`parse()` uses all [the parsing from Moment.js](https://momentjs.com/docs/#/parsing/) to returns a standard JavaScript `Date`. In fact, all work in twozhakes is done using `Date` objects. The `Date` class is far from perfect, but it is compact, it is unambiguous, it measures time in exactly the right way (Unix time), and it prints out nicely.
 
 Having a `Date` object, you can manipulate it with the `operate()` method:
 
@@ -64,11 +64,11 @@ const nd = tz.operate(
   set(hour(9))
 );
 const y = tz.extract(nd, year); // 2020
-const m = tz.extract(d, month); // 1, meaning February (months are zero based!)
-const nm = tz.extract(nd, month); // 2, meaning March
+const m = tz.extract(d, month); // 1, February (months are zero based!)
+const nm = tz.extract(nd, month); // 2,  March
 ```
 
-There are a lot of extractors, but the most important is `format()`, which extracts data as formatted strings, using the [same formatting language as Moment.js](https://momentjs.com/docs/#/displaying/format/).
+There are a lot of extractors, but the most important one is `format()`, which extracts data as formatted strings, using the [same formatting language as Moment.js](https://momentjs.com/docs/#/displaying/format/).
 
 ```typescript
 const tz = getTZ("America/New_York");
