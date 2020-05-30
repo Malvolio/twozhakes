@@ -80,7 +80,7 @@ type TZSetterF<T> = ((value: number) => TZValue<TZUnitName>) & { name: T };
 export type TZUnit = TZSetterF<TZUnitName>;
 /**
  * can be used to set some aspect of a time, so `weekYear(3)`
- * can set a time to the three week of the year.
+ * would set a time to the third week of the year.
  * All units are setters, of course.  `month(3)` can be used
  * to set a time to April.
  */
@@ -88,7 +88,7 @@ export type TZSetter = TZSetterF<TZSetterName>;
 /**
  * extract a value from a given date in the context of the
  * given TZ.
- * Units and setters functions _can be used_ as if they were
+ * Units and setters functions can be used as if they were
  * getters, because the `extract()` method will look up the
  * actual getter by name.
  */
@@ -245,9 +245,9 @@ export const units = {
 
 /**
  * All the legal setters
- * You might think you want to make your own setter, but you don't:
- * instead, create your own operator and use that.
- * The setters are only meant for the exisiting `set()` operator
+ * You might think you want to make your own setter, but you don't.
+ * Instead, create your own operator and use that.
+ * The setters are only meant for the existing `set()` operator
  * constructor.
  */
 export const setters = {

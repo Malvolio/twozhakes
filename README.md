@@ -16,15 +16,31 @@ Read the complete rant [here](https://github.com/Malvolio/twozhakes/blob/master/
 
 ## Getting Started with twozhakes
 
+### Installation
+
+Standard deal:
+
+```sh
+yarn add twozhakes
+```
+
+or
+
+```sh
+npm install twozhakes
+```
+
+### Using twozhakes
+
 Everything in twozhakes revolves around the `TZ`, which encapsulates the timezone and hosts all the actual work.
 
-First, you get a TZ, perhaps like this:
+First, you need a TZ, either by using one of the standard TZs, `SystemTZ` or `UTC`, or by asking for it by name:
 
 ```typescript
 const tz = getTZ("America/New_York");
 ```
 
-Of course, you are more likely to use a standard TZ, like `SystemTZ` or `UTC`. `TZ` only offers three methods, the first of which is `parse()`:
+`TZ` only offers three methods, the first of which is `parse()`:
 
 ```typescript
 const tz = getTZ("America/New_York");
@@ -83,3 +99,10 @@ const nd = tz.operate(
 const s = tz.extract(nd, format("dddd, MMMM Do YYYY, h:mm:ss a"));
 // yields "Sunday, March 1st 2020, 9:00:00 am"
 ```
+
+## Examples
+
+The source code has [two examples](https://github.com/Malvolio/twozhakes/tree/master/src/demo):
+
+- _next_ — two new operators, one to skip ahead to the next occurance of a given day of the week and the other for the month of the year
+- _next_ — an operator to skip ahead to the next US election
