@@ -105,7 +105,7 @@ const s = tz.extract(nd, format("dddd, MMMM Do YYYY, h:mm:ss a"));
 The source code has [two examples](https://github.com/Malvolio/twozhakes/tree/master/src/demo):
 
 - _next_ — two new operators, one to skip ahead to the next occurance of a given day of the week and the other for the month of the year
-- _next_ — an operator to skip ahead to the next US election
+- _election_ — an operator to skip ahead to the next US election
 
 ## Open Questions
 
@@ -149,4 +149,12 @@ Is there any need to support the ability to create custom units -- `fortnight`, 
 
 ### 5. Namespacing
 
-Right now, the constants are all kept in their own pseudo-namespaces, `setters`, `getters`, `operators`. Is this worthwhile or does it just make importing more difficult?
+Right now, the constants are all kept in their own pseudo-namespaces: `setters`, `getters`, and `operators`.
+
+```typescript
+import { TZ, operators, TZUnit, units } from "../lib";
+const { set, startOf, add } = operators;
+const { day, week, month, year } = units;
+```
+
+Is this worthwhile or does it just make importing more difficult?

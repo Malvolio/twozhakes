@@ -52,7 +52,6 @@ const ALL_SETTER_NAMES_LIST: TZSetterName[] = [
  * So `millisecond(3)` return `{name: 'millisecond', value: 3}`
  * Standard setters and unit functions can always be looked up by name.
  */
-
 export type TZValue<T> = {
   value: number;
   name: T;
