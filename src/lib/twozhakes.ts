@@ -1,7 +1,5 @@
 import memoize from "lodash/memoize";
 import reduce from "lodash/reduce";
-import fromPairs from "lodash/fromPairs";
-import map from "lodash/map";
 import moment, { Moment } from "moment-timezone";
 
 type TZUnitName =
@@ -37,7 +35,7 @@ type TZSetterName =
   | "weekYear"
   | "weekday";
 
-const ALL_DISTINCT_SETTER_NAMES_LIST: TZSetterName[] = [
+const ALL_SETTER_NAMES_LIST: TZSetterName[] = [
   "date",
   "dayOfYear",
   "isoWeek",
@@ -46,20 +44,8 @@ const ALL_DISTINCT_SETTER_NAMES_LIST: TZSetterName[] = [
   "weekYear",
   "weekday",
   "isoWeekYear",
-];
-
-const makeAllGetters = (names: TZSetterName[]) =>
-  fromPairs(
-    map(names, (name) => [
-      name,
-      (d: Date, { tzName }: TZ) => moment(d).tz(tzName).get(name),
-    ])
-  );
-
-const SPECIAL_GETTERS = makeAllGetters([
   ...ALL_UNIT_NAMES_LIST,
-  ...ALL_DISTINCT_SETTER_NAMES_LIST,
-]);
+];
 
 /**
  * A setter or unit function returns a TZValue.
@@ -72,7 +58,10 @@ export type TZValue<T> = {
   name: T;
 };
 
-type TZSetterF<T> = ((value: number) => TZValue<TZUnitName>) & { name: T };
+type TZSetterF<T> = ((value: number) => TZValue<T>) & {
+  name: T;
+  getter: TZGetter<number>;
+};
 
 /**
  * a standard unit of time, such a millisecond or a year
@@ -111,11 +100,11 @@ export const asDate = (d: Datish): Date =>
   typeof d === "number" ? new Date(d) : d;
 
 const isGetter = (u: TZSetter | TZGetter<unknown>): u is TZSetter => {
-  return !!SPECIAL_GETTERS[u.name];
+  return "getter" in u;
 };
 
 const getGetter = (u: TZSetter): TZGetter<number> => {
-  return SPECIAL_GETTERS[u.name];
+  return u.getter;
 };
 
 const asGetter = (u: TZExtractor): TZGetter<any> => {
@@ -164,33 +153,30 @@ export const getTZ = memoize(
 );
 
 const makeTZValueMaker = memoize(
-  (name: string): TZSetter => {
+  (name: TZUnitName | TZSetterName): TZSetter => {
     // hack to produce a named function
     const maker = new Function(
       `return function ${name}(value) { return { name: "${name}", value }; };`
     );
-    return maker();
+    const setter: TZSetter = maker();
+    setter.getter = (d: Date, { tzName }: TZ) => moment(d).tz(tzName).get(name);
+    return setter;
   }
 );
 
 const makeTZUnit = (name: TZUnitName): TZUnit =>
   makeTZValueMaker(name) as TZUnit;
 
-const ALL_UNIT_NAMES = new Set<string>(ALL_UNIT_NAMES_LIST);
-
-const isTZUnitName = (name: string): name is TZUnitName => {
-  return ALL_UNIT_NAMES.has(name);
-};
-
 const makeZSetter = (name: TZSetterName): TZSetter => makeTZValueMaker(name);
 
-const ALL_DISTINCT_SETTER_NAMES = new Set<string>(
-  ALL_DISTINCT_SETTER_NAMES_LIST
-);
-
-const isTZSetterNames = (name: string): name is TZUnitName => {
-  return ALL_UNIT_NAMES.has(name) || ALL_DISTINCT_SETTER_NAMES.has(name);
+const makeisTZType = <TN extends string>(namesList: TN[]) => {
+  const allNames = new Set<string>(namesList);
+  return memoize((name: string): name is TN => allNames.has(name));
 };
+
+const isTZUnitName = makeisTZType(ALL_UNIT_NAMES_LIST);
+
+const isTZSetterNames = makeisTZType(ALL_SETTER_NAMES_LIST);
 
 const cleanName = (name: string) => {
   return name.charAt(name.length - 1) === "s"
@@ -261,19 +247,22 @@ export const setters = {
   ...units,
 } as const;
 
-type Constructor<T, P extends unknown[]> = (...parms: P) => T;
+type Constructor<T, P extends unknown[]> = (...params: P) => T;
 
 type MomentOp = (d: Moment) => Moment;
 
 function wrapOp<P extends unknown[]>(
   f: Constructor<MomentOp, P>
 ): Constructor<TZOperator, P> {
-  return (...p: P) => {
-    const f1 = f(...p);
+  return (...params: P) => {
+    const f1 = f(...params);
     return (d: Date, { tzName }: TZ) => f1(moment(d).tz(tzName)).toDate();
   };
 }
 
+/**
+ * The six built-in operators, straight from Moment.js
+ */
 export const operators = {
   set: wrapOp((v: TZValue<TZSetterName>) => (m: Moment) => {
     const f = m[v.name] as (n: number) => Moment;
