@@ -9,8 +9,8 @@ import {
   getters,
 } from "../lib";
 
-const { day, hour } = units;
-const { add, set, subtract } = operators;
+const { day, hour, month, year } = units;
+const { add, set, subtract, startOf } = operators;
 const { date } = setters;
 const { format, isoWeeksInYear, from } = getters;
 
@@ -87,4 +87,22 @@ test("can extract 'from'", () => {
 test("can find date setter", () => {
   const foundDate = getTZSetter("dates");
   expect(foundDate).toBe(date);
+});
+
+test("some general manipulation", () => {
+  const tz = getTZ("America/New_York");
+  const d = tz.parse("2020-02-05");
+  const nd = tz.operate(
+    d,
+    add(month(1)),
+    startOf(month),
+    startOf(day),
+    set(hour(9))
+  );
+  expect(tz.extract(nd, year)).toBe(2020);
+  expect(tz.extract(d, month)).toBe(1);
+  expect(tz.extract(nd, month)).toBe(2);
+  expect(tz.extract(nd, format("dddd, MMMM Do YYYY, h:mm:ss a"))).toBe(
+    "Sunday, March 1st 2020, 9:00:00 am"
+  );
 });
