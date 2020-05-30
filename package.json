@@ -1,8 +1,8 @@
 {
-  "name": "twoshakes",
-  "version": "0.0.1",
+  "name": "twozhakes",
+  "version": "0.1.0",
   "description": "A sensible facade for momentjs",
-  "main": "index.js",
+  "main": "build/lib/index.js",
   "scripts": {
     "build": "tsc",
     "test": "jest src/",
@@ -11,12 +11,19 @@
   "keywords": [
     "momentjs"
   ],
-  "author": "Michael Lorton",
+  "author": {
+    "name": "Michael Lorton",
+    "email": "malvoliosf+npm@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Malvolio/twozhakes.git"
+  },
   "license": "MIT",
   "dependencies": {
-    "lodash": "^4.17.15",
-    "moment": "^2.26.0",
-    "moment-timezone": "^0.5.31"
+    "lodash": "^4",
+    "moment": "^2",
+    "moment-timezone": "^0.5"
   },
   "devDependencies": {
     "@types/jest": "^25.2.3",
