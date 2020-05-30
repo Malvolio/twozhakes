@@ -72,17 +72,19 @@ export type TZValue<T> = {
   name: T;
 };
 
+type TZSetterF<T> = ((value: number) => TZValue<TZUnitName>) & { name: T };
+
 /**
  * a standard unit of time, such a millisecond or a year
  */
-export type TZUnit = (value: number) => TZValue<TZUnitName>;
+export type TZUnit = TZSetterF<TZUnitName>;
 /**
  * can be used to set some aspect of a time, so `weekYear(3)`
  * can set a time to the three week of the year.
  * All units are setters, of course.  `month(3)` can be used
  * to set a time to April.
  */
-export type TZSetter = (value: number) => TZValue<TZSetterName>;
+export type TZSetter = TZSetterF<TZSetterName>;
 /**
  * extract a value from a given date in the context of the
  * given TZ.
@@ -227,7 +229,7 @@ export const getTZSetter = memoize(
 );
 
 /**
- * all the legal units
+ * All the legal units
  */
 export const units = {
   millisecond: makeTZUnit("millisecond"),
@@ -241,6 +243,13 @@ export const units = {
   year: makeTZUnit("year"),
 } as const;
 
+/**
+ * All the legal setters
+ * You might think you want to make your own setter, but you don't:
+ * instead, create your own operator and use that.
+ * The setters are only meant for the exisiting `set()` operator
+ * constructor.
+ */
 export const setters = {
   date: makeZSetter("date"),
   dayOfYear: makeZSetter("dayOfYear"),
@@ -277,12 +286,8 @@ export const operators = {
   subtract: wrapOp((v: TZValue<TZUnitName>) => (m: Moment) =>
     m.subtract(v.value, v.name)
   ),
-  startOf: wrapOp((unit: TZUnit) => (m: Moment) =>
-    m.startOf(<TZUnitName>unit.name)
-  ),
-  endOf: wrapOp((unit: TZUnit) => (m: Moment) =>
-    m.endOf(<TZUnitName>unit.name)
-  ),
+  startOf: wrapOp((unit: TZUnit) => (m: Moment) => m.startOf(unit.name)),
+  endOf: wrapOp((unit: TZUnit) => (m: Moment) => m.endOf(unit.name)),
 } as const;
 
 const wrapMomentGetter = <T>(f: (m: Moment) => T) => (
@@ -308,10 +313,11 @@ const toNow = (b?: boolean) => wrapMomentGetter((m: Moment) => m.toNow(b));
 const fromNow = (b?: boolean) => wrapMomentGetter((m: Moment) => m.fromNow(b));
 
 /**
- * All the built-in getters.  They are taken from Moment.js.
- * You can create your own, of course: a function of type `TZGetter<T>`,
- * which means it takes a Date and a TZ as arguments and returns something
- * at is _not_ a Date.
+ * All the built-in getters _constructors_.  They take some number of parameters and
+ * return a getter that can be passed to `extract()`.
+ * These are taken from Moment.js.
+ * You can create your own getter, of course: a function of type `TZGetter<T>`,
+ * which means it takes a Date and a TZ as arguments and returns whatever you like.
  */
 export const getters = {
   weeksInYear,
