@@ -106,3 +106,47 @@ The source code has [two examples](https://github.com/Malvolio/twozhakes/tree/ma
 
 - _next_ — two new operators, one to skip ahead to the next occurance of a given day of the week and the other for the month of the year
 - _next_ — an operator to skip ahead to the next US election
+
+## Open Questions
+
+### 1. Units
+
+Right now, the unit constructors can be used as getters directly, like this:
+
+```typescript
+const m = tz.extract(d, month);
+```
+
+Should they have to be invoked without arguments, to suggest the pattern from Moment.js?
+
+```typescript
+const m = tz.extract(d, month());
+```
+
+### 2. Plural forms
+
+Right now, the units and other setters are only defined in the singular, `millisecond`, `year`, etc. Should twozhakes also support plurals?
+
+### 3. Invoking the built-in operators
+
+Right now, all the built-in operatos are constructed with unit-values, like so:
+
+```typescript
+const nd = tz.operate(d, add(month(1)), startOf(month));
+```
+
+Would it make more sense to associate the operators directly with the unit-values, like so:
+
+```typescript
+const nd = tz.operate(d, month(1).add, month.startOf);
+```
+
+or does that just look funny?
+
+### 4. Custom units
+
+Is there any need to support the ability to create custom units -- `fortnight`, `century`? This becomes much easier if Question 3 is answered with Yes.
+
+### 5. Namespacing
+
+Right now, the constants are all kept in their own pseudo-namespaces, `setters`, `getters`, `operators`. Is this worthwhile or does it just make importing more difficult?
